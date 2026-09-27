@@ -13,13 +13,21 @@ import * as fs from "fs";
  */
 
 // Configuration
-const DEFAULT_DB_PATH = process.env.SQLITE_DB_PATH || "./database.db";
+//
+// Resolved lazily on every call. The CLI wrapper parses `--db`/`--database` and
+// then assigns process.env.SQLITE_DB_PATH, but ESM imports are evaluated before
+// any of that runs, so a module-level const froze "./database.db" and the flags
+// were silently ignored -- the server opened an empty ./database.db instead of
+// the requested file, with no error.
+function getDefaultDbPath(): string {
+  return process.env.SQLITE_DB_PATH || "./database.db";
+}
 
 // Database connection
 let db: Database.Database | null = null;
 
 // Initialize database connection
-function initializeDatabase(dbPath: string = DEFAULT_DB_PATH): Database.Database {
+function initializeDatabase(dbPath: string = getDefaultDbPath()): Database.Database {
   try {
     // Ensure directory exists
     const dir = path.dirname(dbPath);
