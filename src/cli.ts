@@ -80,7 +80,15 @@ function parseArgs() {
         break;
 
       default:
-        if (arg.startsWith('-')) {
+        // --db=<path> / --database=<path>, the form most MCP client configs use.
+        if (arg.startsWith('--db=') || arg.startsWith('--database=')) {
+          const inlinePath = arg.slice(arg.indexOf('=') + 1);
+          if (inlinePath === '') {
+            console.error(`Error: ${arg.slice(0, arg.indexOf('='))} requires a database path argument`);
+            process.exit(1);
+          }
+          config.dbPath = inlinePath;
+        } else if (arg.startsWith('-')) {
           console.error(`Error: Unknown option '${arg}'`);
           console.error('Use --help to see available options');
           process.exit(1);
